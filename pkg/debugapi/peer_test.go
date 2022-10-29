@@ -2,6 +2,7 @@ package debugapi_test
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"net/http"
 	"testing"
@@ -27,7 +28,7 @@ func TestConnect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	overlay, err := crypto.NewOverlayAddress(privateKey.PublicKey, 0)
+	overlay, err := crypto.NewOverlayAddress(crypto.FromPublicKey(privateKey.GetPublic()), 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +37,7 @@ func TestConnect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	bzzAddress, err := address.NewAddress(crypto.NewDefaultSigner(privateKey), underlama, overlay, 0)
+	bzzAddress, err := address.NewAddress(crypto.NewDefaultSigner(privateKey.IntoKey().(*ecdsa.PrivateKey)), underlama, overlay, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

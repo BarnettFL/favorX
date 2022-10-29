@@ -106,7 +106,7 @@ func (c *command) initStartCmd() (err error) {
 				logger.Info("Start node mode light.")
 			}
 
-			b, err := node.NewNode(mode, c.config.GetString(optionNameP2PAddr), signerCfg.address, *signerCfg.publicKey, signerCfg.signer, c.config.GetUint64(optionNameNetworkID), logger, signerCfg.libp2pPrivateKey, node.Options{
+			b, err := node.NewNode(mode, c.config.GetString(optionNameP2PAddr), signerCfg.address, signerCfg.publicKey, signerCfg.signer, c.config.GetUint64(optionNameNetworkID), logger, signerCfg.libp2pPrivateKey, node.Options{
 				DataDir:                c.config.GetString(optionNameDataDir),
 				CacheCapacity:          c.config.GetUint64(optionNameCacheCapacity),
 				DBDriver:               c.config.GetString(optionDatabaseDriver),
@@ -237,7 +237,7 @@ func (p *program) Stop(s service.Service) error {
 type signerConfig struct {
 	signer           crypto.Signer
 	address          boson.Address
-	publicKey        *ecdsa.PublicKey
+	publicKey        crypto.PublicKey
 	libp2pPrivateKey crypto2.PrivKey
 }
 
@@ -253,8 +253,8 @@ func (c *command) configureSigner(cmd *cobra.Command, logger logging.Logger) (co
 	}
 
 	var signer crypto.Signer
+	var address boson.Address
 	var password string
-	var publicKey *ecdsa.PublicKey
 	if p := c.config.GetString(optionNamePassword); p != "" {
 		password = p
 	} else if pf := c.config.GetString(optionNamePasswordFile); pf != "" {
@@ -284,27 +284,26 @@ func (c *command) configureSigner(cmd *cobra.Command, logger logging.Logger) (co
 		}
 	}
 
-	PrivateKey, created, err := kt.Key("boson", password)
+	privateKey, created, err := kt.Key(crypto.KeyType_Secp256k1, "boson", password)
 	if err != nil {
 		return nil, fmt.Errorf("boson key: %w", err)
 	}
-	signer = crypto.NewDefaultSigner(PrivateKey)
-	publicKey = &PrivateKey.PublicKey
+	signer = crypto.NewDefaultSigner(privateKey.IntoKey().(*ecdsa.PrivateKey))
+	publicKey := privateKey.GetPublic()
 
-	var addr boson.Address
-	addr, err = crypto.NewOverlayAddress(*publicKey, c.config.GetUint64(optionNameNetworkID))
+	address, err = crypto.NewOverlayAddress(publicKey, c.config.GetUint64(optionNameNetworkID))
 	if err != nil {
 		return nil, err
 	}
 
 	if created {
-		logger.Infof("new boson network address created: %s", addr)
+		logger.Infof("new boson network address created: %s", address)
 	} else {
-		logger.Infof("using existing boson network address: %s", addr)
+		logger.Infof("using existing boson network address: %s", address)
 	}
-	// }
 
-	logger.Infof("boson public key %x", crypto.EncodeSecp256k1PublicKey(publicKey))
+	rawPublicKey, _ := publicKey.Raw()
+	logger.Infof("boson public key %x", rawPublicKey)
 
 	libp2pPrivateKey, created, err := p2pkey.New(path).Key("libp2p", password)
 	if err != nil {
@@ -318,7 +317,7 @@ func (c *command) configureSigner(cmd *cobra.Command, logger logging.Logger) (co
 
 	return &signerConfig{
 		signer:           signer,
-		address:          addr,
+		address:          address,
 		publicKey:        publicKey,
 		libp2pPrivateKey: libp2pPrivateKey,
 	}, nil

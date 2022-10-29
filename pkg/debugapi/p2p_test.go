@@ -3,6 +3,9 @@ package debugapi_test
 import (
 	"encoding/hex"
 	"errors"
+	"net/http"
+	"testing"
+
 	"github.com/FavorLabs/favorX/pkg/boson"
 	"github.com/FavorLabs/favorX/pkg/crypto"
 	"github.com/FavorLabs/favorX/pkg/debugapi"
@@ -10,8 +13,6 @@ import (
 	"github.com/FavorLabs/favorX/pkg/jsonhttp/jsonhttptest"
 	"github.com/FavorLabs/favorX/pkg/p2p/mock"
 	"github.com/multiformats/go-multiaddr"
-	"net/http"
-	"testing"
 )
 
 func TestAddresses(t *testing.T) {
@@ -27,14 +28,16 @@ func TestAddresses(t *testing.T) {
 		mustMultiaddr(t, "/ip4/127.0.0.1/udp/7071/quic/p2p/16Uiu2HAmTBuJT9LvNmBiQiNoTsxE5mtNy6YG3paw79m94CRa9sRb"),
 	}
 
+	publicKey := crypto.FromPublicKey(privateKey.GetPublic())
 	testServer := newTestServer(t, testServerOptions{
-		PublicKey: privateKey.PublicKey,
+		PublicKey: publicKey,
 		Overlay:   overlay,
 		P2P: mock.New(mock.WithAddressesFunc(func() ([]multiaddr.Multiaddr, error) {
 			return addresses, nil
 		})),
 	})
 
+	rawPublicKey, _ := publicKey.Raw()
 	t.Run("ok", func(t *testing.T) {
 		jsonhttptest.Request(t, testServer.Client, http.MethodGet, "/addresses", http.StatusOK,
 			jsonhttptest.WithExpectedJSONResponse(debugapi.AddressesResponse{
@@ -43,7 +46,7 @@ func TestAddresses(t *testing.T) {
 				NATRoute:  []string{"1.1.1.1"},
 				PublicIP:  *debugapi.GetPublicIp(logger),
 				NetworkID: 0,
-				PublicKey: hex.EncodeToString(crypto.EncodeSecp256k1PublicKey(&privateKey.PublicKey)),
+				PublicKey: hex.EncodeToString(rawPublicKey),
 			}),
 		)
 	})

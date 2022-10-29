@@ -77,7 +77,7 @@ func (s *Service) exportKeyHandler(w http.ResponseWriter, r *http.Request) {
 	password := j.Get("password").String()
 	tp := j.Get("type").String()
 	if tp == "private" {
-		privateKey, _, err := f.Key("boson", password)
+		privateKey, _, err := f.Key(crypto.KeyType_Sr25519, "boson", password)
 		if err != nil {
 			jsonhttp.InternalServerError(w, err)
 			return
@@ -85,7 +85,7 @@ func (s *Service) exportKeyHandler(w http.ResponseWriter, r *http.Request) {
 		type out struct {
 			PrivateKey string `json:"private_key"`
 		}
-		pk := crypto.EncodeSecp256k1PrivateKey(privateKey)
+		pk, _ := privateKey.Raw()
 		jsonhttp.OK(w, out{PrivateKey: hex.EncodeToString(pk)})
 		return
 	}

@@ -92,7 +92,7 @@ func (s *SOC) Sign(signer crypto.Signer) (boson.Chunk, error) {
 	if err != nil {
 		return nil, err
 	}
-	ownerAddressBytes, err := crypto.NewEthereumAddress(*publicKey)
+	ownerAddressBytes, err := crypto.NewEthereumAddress((*crypto.Secp256k1PublicKey)(publicKey))
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func recoverAddress(signature, digest []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	recoveredEthereumAddress, err := crypto.NewEthereumAddress(*recoveredPublicKey)
+	recoveredEthereumAddress, err := crypto.NewEthereumAddress((*crypto.Secp256k1PublicKey)(recoveredPublicKey))
 	if err != nil {
 		return nil, err
 	}

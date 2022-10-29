@@ -2,6 +2,7 @@ package routetab_test
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"io"
 	"math/rand"
@@ -135,8 +136,8 @@ func newTestNode(t *testing.T) *Node {
 
 func randomAddress(t *testing.T) (addr *address.Address, signer crypto.Signer) {
 	pk, _ := crypto.GenerateSecp256k1Key()
-	signer = crypto.NewDefaultSigner(pk)
-	base, _ := crypto.NewOverlayAddress(pk.PublicKey, networkId)
+	signer = crypto.NewDefaultSigner(pk.IntoKey().(*ecdsa.PrivateKey))
+	base, _ := crypto.NewOverlayAddress(crypto.FromPublicKey(pk.GetPublic()), networkId)
 	mu, err := ma.NewMultiaddr(underlayBase + base.String())
 	if err != nil {
 		t.Fatal(err)

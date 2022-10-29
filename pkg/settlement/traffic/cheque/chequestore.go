@@ -206,7 +206,7 @@ func RecoverCheque(cheque *SignedCheque, chaindID int64) (common.Address, error)
 		return common.Address{}, err
 	}
 
-	ethAddr, err := crypto.NewEthereumAddress(*pubkey)
+	ethAddr, err := crypto.NewEthereumAddress((*crypto.Secp256k1PublicKey)(pubkey))
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -342,7 +342,7 @@ func (s *chequeStore) RecoverCheque(cheque *SignedCheque, chainID int64) (common
 		return common.Address{}, err
 	}
 
-	ethAddr, err := crypto.NewEthereumAddress(*pubkey)
+	ethAddr, err := crypto.NewEthereumAddress((*crypto.Secp256k1PublicKey)(pubkey))
 	if err != nil {
 		return common.Address{}, err
 	}

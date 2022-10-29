@@ -3,6 +3,7 @@ package handshake_test
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"io"
@@ -64,9 +65,9 @@ func TestHandshake(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signer1 := crypto.NewDefaultSigner(privateKey1)
-	signer2 := crypto.NewDefaultSigner(privateKey2)
-	addr, err := crypto.NewOverlayAddress(privateKey1.PublicKey, networkID)
+	signer1 := crypto.NewDefaultSigner(privateKey1.IntoKey().(*ecdsa.PrivateKey))
+	signer2 := crypto.NewDefaultSigner(privateKey2.IntoKey().(*ecdsa.PrivateKey))
+	addr, err := crypto.NewOverlayAddress(crypto.FromPublicKey(privateKey1.GetPublic()), networkID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +75,7 @@ func TestHandshake(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	addr2, err := crypto.NewOverlayAddress(privateKey2.PublicKey, networkID)
+	addr2, err := crypto.NewOverlayAddress(crypto.FromPublicKey(privateKey2.GetPublic()), networkID)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,11 +1,11 @@
 package mem
 
 import (
-	"crypto/ecdsa"
 	"fmt"
+	"sync"
+
 	"github.com/FavorLabs/favorX/pkg/crypto"
 	"github.com/FavorLabs/favorX/pkg/keystore"
-	"sync"
 )
 
 var _ keystore.Service = (*Service)(nil)
@@ -35,7 +35,7 @@ func (s *Service) Exists(name string) (bool, error) {
 
 }
 
-func (s *Service) Key(name, password string) (pk *ecdsa.PrivateKey, created bool, err error) {
+func (s *Service) Key(_ crypto.KeyType, name, password string) (pk crypto.PrivateKey, created bool, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -67,12 +67,12 @@ func (s *Service) ImportKey(name, password string, keyJson []byte) error {
 	panic("implement me")
 }
 
-func (s *Service) ImportPrivateKey(name, password string, pk *ecdsa.PrivateKey) (err error) {
-	//TODO implement me
+func (s *Service) ImportPrivateKey(name, password string, pk crypto.PrivateKey) (err error) {
+	// TODO implement me
 	panic("implement me")
 }
 
 type key struct {
-	pk       *ecdsa.PrivateKey
+	pk       crypto.PrivateKey
 	password string
 }

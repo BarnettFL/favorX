@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync/atomic"
+	"time"
+
 	"github.com/FavorLabs/favorX/pkg/address"
 	"github.com/FavorLabs/favorX/pkg/boson"
 	"github.com/FavorLabs/favorX/pkg/crypto"
@@ -14,8 +17,6 @@ import (
 	"github.com/FavorLabs/favorX/pkg/topology/lightnode"
 	libp2ppeer "github.com/libp2p/go-libp2p-core/peer"
 	ma "github.com/multiformats/go-multiaddr"
-	"sync/atomic"
-	"time"
 )
 
 const (
@@ -313,7 +314,7 @@ func (s *Service) SetWelcomeMessage(msg string) (err error) {
 	return nil
 }
 
-// GetWelcomeMessage returns the current handshake welcome message.
+// GetWelcomeMessage returns the the current handshake welcome message.
 func (s *Service) GetWelcomeMessage() string {
 	return s.welcomeMessage.Load().(string)
 }
@@ -322,8 +323,23 @@ func buildFullMA(addr ma.Multiaddr, peerID libp2ppeer.ID) (ma.Multiaddr, error) 
 	return ma.NewMultiaddr(fmt.Sprintf("%s/p2p/%s", addr.String(), peerID.Pretty()))
 }
 
+func parseAddress(underlay, overlay, signature []byte, _ uint64) (*address.Address, error) {
+	// TODO verify overlay
+
+	multiUnderlay, err := ma.NewMultiaddrBytes(underlay)
+	if err != nil {
+		return nil, address.ErrInvalidAddress
+	}
+
+	return &address.Address{
+		Underlay:  multiUnderlay,
+		Overlay:   boson.NewAddress(overlay),
+		Signature: signature,
+	}, nil
+}
+
 func (s *Service) parseCheckAck(ack *pb.Ack) (*address.Address, error) {
-	bzzAddress, err := address.ParseAddress(ack.Address.Underlay, ack.Address.Overlay, ack.Address.Signature, s.networkID)
+	bzzAddress, err := parseAddress(ack.Address.Underlay, ack.Address.Overlay, ack.Address.Signature, s.networkID)
 	if err != nil {
 		return nil, ErrInvalidAck
 	}

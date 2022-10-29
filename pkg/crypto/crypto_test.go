@@ -34,7 +34,7 @@ func TestNewAddress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a, err := crypto.NewOverlayAddress(k.PublicKey, 1)
+	a, err := crypto.NewOverlayAddress(crypto.FromPublicKey(k.GetPublic()), 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,10 @@ func TestEncodeSecp256k1PrivateKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	d := crypto.EncodeSecp256k1PrivateKey(k1)
+	d, err := k1.Raw()
+	if err != nil {
+		t.Fatal(err)
+	}
 	k2, err := crypto.DecodeSecp256k1PrivateKey(d)
 	if err != nil {
 		t.Fatal(err)
@@ -91,7 +94,7 @@ func TestNewEthereumAddress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	address, err := crypto.NewEthereumAddress(privKey.PublicKey)
+	address, err := crypto.NewEthereumAddress(crypto.FromPublicKey(privKey.GetPublic()))
 	if err != nil {
 		t.Fatal(err)
 	}

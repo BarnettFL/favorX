@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"crypto/ecdsa"
 	"testing"
 
 	"github.com/FavorLabs/favorX/pkg/boson"
@@ -36,7 +37,7 @@ func GenerateMockSOC(t *testing.T, data []byte) *MockSOC {
 	if err != nil {
 		t.Fatal(err)
 	}
-	signer := crypto.NewDefaultSigner(privKey)
+	signer := crypto.NewDefaultSigner(privKey.IntoKey().(*ecdsa.PrivateKey))
 	owner, err := signer.EthereumAddress()
 	if err != nil {
 		t.Fatal(err)

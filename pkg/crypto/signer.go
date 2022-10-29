@@ -110,7 +110,7 @@ func (d *defaultSigner) EthereumAddress() (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	eth, err := NewEthereumAddress(*publicKey)
+	eth, err := NewEthereumAddress((*Secp256k1PublicKey)(publicKey))
 	if err != nil {
 		return common.Address{}, err
 	}

@@ -1,11 +1,11 @@
 package address_test
 
 import (
+	"crypto/ecdsa"
 	"testing"
 
 	"github.com/FavorLabs/favorX/pkg/address"
 	"github.com/FavorLabs/favorX/pkg/crypto"
-
 	ma "github.com/multiformats/go-multiaddr"
 )
 
@@ -20,11 +20,11 @@ func TestBzzAddress(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	overlay, err := crypto.NewOverlayAddress(privateKey1.PublicKey, 3)
+	overlay, err := crypto.NewOverlayAddress(crypto.FromPublicKey(privateKey1.GetPublic()), 3)
 	if err != nil {
 		t.Fatal(err)
 	}
-	signer1 := crypto.NewDefaultSigner(privateKey1)
+	signer1 := crypto.NewDefaultSigner(privateKey1.IntoKey().(*ecdsa.PrivateKey))
 
 	bzzAddress, err := address.NewAddress(signer1, node1ma, overlay, 3)
 	if err != nil {

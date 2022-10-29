@@ -1,8 +1,9 @@
 package keystore
 
 import (
-	"crypto/ecdsa"
 	"errors"
+
+	"github.com/FavorLabs/favorX/pkg/crypto"
 )
 
 // ErrInvalidPassword is returned when the password for decrypting content where
@@ -15,10 +16,10 @@ type Service interface {
 	// the provided password. If the private key does not exists it creates
 	// a new one with a name and the password, and returns with created set
 	// to true.
-	Key(name, password string) (k *ecdsa.PrivateKey, created bool, err error)
+	Key(typ crypto.KeyType, name, password string) (k crypto.PrivateKey, created bool, err error)
 	// Exists returns true if the key with specified name exists.
 	Exists(name string) (bool, error)
 	ExportKey(name, password string) ([]byte, error)
 	ImportKey(name, password string, keyJson []byte) error
-	ImportPrivateKey(name, password string, pk *ecdsa.PrivateKey) (err error)
+	ImportPrivateKey(name, password string, pk crypto.PrivateKey) (err error)
 }

@@ -17,13 +17,13 @@ func TestECDHCorrect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dh0 := crypto.NewDH(key0)
+	dh0 := crypto.NewDH(key0.IntoKey().(*ecdsa.PrivateKey))
 
 	key1, err := crypto.GenerateSecp256k1Key()
 	if err != nil {
 		t.Fatal(err)
 	}
-	dh1 := crypto.NewDH(key1)
+	dh1 := crypto.NewDH(key1.IntoKey().(*ecdsa.PrivateKey))
 
 	salt := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
@@ -67,7 +67,7 @@ func TestSharedKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dh := crypto.NewDH(privKey)
+	dh := crypto.NewDH(privKey.IntoKey().(*ecdsa.PrivateKey))
 	sk, err := dh.SharedKey((*ecdsa.PublicKey)(pubkey), salt)
 	if err != nil {
 		t.Fatal(err)

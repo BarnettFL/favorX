@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"io"
+
+	"github.com/google/uuid"
 
 	"github.com/FavorLabs/favorX/pkg/crypto"
 	"github.com/FavorLabs/favorX/pkg/keystore"
@@ -32,10 +32,11 @@ const (
 
 // This format is compatible with Ethereum JSON v3 key file format.
 type encryptedKey struct {
-	Address string    `json:"address"`
-	Crypto  keyCripto `json:"crypto"`
-	Version int       `json:"version"`
-	Id      string    `json:"id"`
+	Address string         `json:"address"`
+	Crypto  keyCripto      `json:"crypto"`
+	Version int            `json:"version"`
+	Type    crypto.KeyType `json:"type"`
+	Id      string         `json:"id"`
 }
 
 type keyCripto struct {
@@ -59,13 +60,16 @@ type kdfParams struct {
 	Salt  string `json:"salt"`
 }
 
-func encryptKey(k *ecdsa.PrivateKey, password string) ([]byte, error) {
-	data := crypto.EncodeSecp256k1PrivateKey(k)
+func encryptKey(k crypto.PrivateKey, password string) ([]byte, error) {
+	data, err := k.Raw()
+	if err != nil {
+		return nil, err
+	}
 	kc, err := encryptData(data, []byte(password))
 	if err != nil {
 		return nil, err
 	}
-	addr, err := crypto.NewEthereumAddress(k.PublicKey)
+	addr, err := crypto.NewEthereumAddress(k.GetPublic())
 	if err != nil {
 		return nil, err
 	}
@@ -73,11 +77,12 @@ func encryptKey(k *ecdsa.PrivateKey, password string) ([]byte, error) {
 		Address: hex.EncodeToString(addr),
 		Crypto:  *kc,
 		Version: keyVersion,
+		Type:    k.Type(),
 		Id:      uuid.NewString(),
 	})
 }
 
-func decryptKey(data []byte, password string) (*ecdsa.PrivateKey, error) {
+func decryptKey(data []byte, password string) (crypto.PrivateKey, error) {
 	var k encryptedKey
 	if err := json.Unmarshal(data, &k); err != nil {
 		return nil, err
@@ -89,7 +94,13 @@ func decryptKey(data []byte, password string) (*ecdsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return crypto.DecodeSecp256k1PrivateKey(d)
+	switch k.Type {
+	case crypto.KeyType_Secp256k1:
+		return crypto.DecodeSecp256k1PrivateKey(d)
+	case crypto.KeyType_Sr25519:
+		return crypto.DecodeSr25519PrivateKey(d)
+	}
+	return nil, fmt.Errorf("invalid key type: %d", k.Type)
 }
 
 func encryptData(data, password []byte) (*keyCripto, error) {

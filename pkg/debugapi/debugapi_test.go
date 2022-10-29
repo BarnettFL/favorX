@@ -1,7 +1,6 @@
 package debugapi_test
 
 import (
-	"crypto/ecdsa"
 	"encoding/hex"
 	"io"
 	"net/http"
@@ -31,7 +30,7 @@ import (
 
 type testServerOptions struct {
 	Overlay            boson.Address
-	PublicKey          ecdsa.PublicKey
+	PublicKey          crypto.PublicKey
 	CORSAllowedOrigins []string
 	P2P                *p2pmock.Service
 	Pingpong           pingpong.Interface
@@ -104,7 +103,7 @@ func TestServer_Configure(t *testing.T) {
 	}
 
 	o := testServerOptions{
-		PublicKey: privateKey.PublicKey,
+		PublicKey: crypto.FromPublicKey(privateKey.GetPublic()),
 		Overlay:   overlay,
 		P2P: mock.New(mock.WithAddressesFunc(func() ([]multiaddr.Multiaddr, error) {
 			return addresses, nil
@@ -136,6 +135,7 @@ func TestServer_Configure(t *testing.T) {
 
 	testBasicRouter(t, client)
 
+	rawPublicKey, _ := o.PublicKey.Raw()
 	jsonhttptest.Request(t, client, http.MethodGet, "/addresses", http.StatusOK,
 		jsonhttptest.WithExpectedJSONResponse(debugapi.AddressesResponse{
 			Overlay:   o.Overlay,
@@ -143,7 +143,7 @@ func TestServer_Configure(t *testing.T) {
 			NATRoute:  []string{},
 			PublicIP:  *debugapi.GetPublicIp(logger),
 			NetworkID: 0,
-			PublicKey: hex.EncodeToString(crypto.EncodeSecp256k1PublicKey(&o.PublicKey)),
+			PublicKey: hex.EncodeToString(rawPublicKey),
 		}),
 	)
 
@@ -165,7 +165,7 @@ func TestServer_Configure(t *testing.T) {
 			NATRoute:  []string{"1.1.1.1"},
 			PublicIP:  *debugapi.GetPublicIp(logger),
 			NetworkID: 0,
-			PublicKey: hex.EncodeToString(crypto.EncodeSecp256k1PublicKey(&o.PublicKey)),
+			PublicKey: hex.EncodeToString(rawPublicKey),
 		}),
 	)
 }

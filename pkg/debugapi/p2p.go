@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/FavorLabs/favorX/pkg/boson"
-	"github.com/FavorLabs/favorX/pkg/crypto"
 	"github.com/FavorLabs/favorX/pkg/jsonhttp"
 	"github.com/FavorLabs/favorX/pkg/logging"
 	"github.com/multiformats/go-multiaddr"
@@ -116,12 +115,14 @@ func (s *Service) addressesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	encodedPublicKey, _ := s.publicKey.Raw()
+
 	jsonhttp.OK(w, addressesResponse{
 		Overlay:   s.overlay,
 		Underlay:  underlay,
 		NATRoute:  natAddresses,
 		PublicIP:  *pubIP,
 		NetworkID: s.nodeOptions.NetworkID,
-		PublicKey: hex.EncodeToString(crypto.EncodeSecp256k1PublicKey(&s.publicKey)),
+		PublicKey: hex.EncodeToString(encodedPublicKey),
 	})
 }

@@ -2,7 +2,6 @@ package debugapi
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"net/http"
 	"sync"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/FavorLabs/favorX/pkg/addressbook"
 	"github.com/FavorLabs/favorX/pkg/boson"
 	"github.com/FavorLabs/favorX/pkg/chunkinfo"
+	"github.com/FavorLabs/favorX/pkg/crypto"
 	"github.com/FavorLabs/favorX/pkg/fileinfo"
 	"github.com/FavorLabs/favorX/pkg/logging"
 	"github.com/FavorLabs/favorX/pkg/multicast"
@@ -39,7 +39,7 @@ type Service struct {
 	restricted         bool
 	auth               authenticator
 	overlay            boson.Address
-	publicKey          ecdsa.PublicKey
+	publicKey          crypto.PublicKey
 	p2p                p2p.DebugService
 	pingpong           pingpong.Interface
 	topologyDriver     topology.Driver
@@ -80,7 +80,7 @@ type Options struct {
 // to expose /addresses, /health endpoints, Go metrics and pprof. It is useful to expose
 // these endpoints before all dependencies are configured and injected to have
 // access to basic debugging tools and /health endpoint.
-func New(overlay boson.Address, publicKey ecdsa.PublicKey, logger logging.Logger, tracer *tracing.Tracer, corsAllowedOrigins []string, restrict bool, auth authenticator, o Options) *Service {
+func New(overlay boson.Address, publicKey crypto.PublicKey, logger logging.Logger, tracer *tracing.Tracer, corsAllowedOrigins []string, restrict bool, auth authenticator, o Options) *Service {
 	s := new(Service)
 	s.auth = auth
 	s.restricted = restrict

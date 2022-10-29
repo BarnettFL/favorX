@@ -84,7 +84,7 @@ func ParseAddress(underlay, overlay, signature []byte, networkID uint64) (*Addre
 		return nil, ErrInvalidAddress
 	}
 
-	recoveredOverlay, err := crypto.NewOverlayAddress(*recoveredPK, networkID)
+	recoveredOverlay, err := crypto.NewOverlayAddress((*crypto.Secp256k1PublicKey)(recoveredPK), networkID)
 	if err != nil {
 		return nil, ErrInvalidAddress
 	}

@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"github.com/FavorLabs/favorX/pkg/address"
 	"io"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/FavorLabs/favorX/pkg/address"
 
 	"github.com/FavorLabs/favorX/pkg/addressbook"
 	"github.com/FavorLabs/favorX/pkg/boson"
@@ -42,7 +43,7 @@ func newService(t *testing.T, networkID uint64, o libp2pServiceOpts) (s *libp2p.
 		t.Fatal(err)
 	}
 
-	overlay, err = crypto.NewOverlayAddress(k.PublicKey, networkID)
+	overlay, err = crypto.NewOverlayAddress(crypto.FromPublicKey(k.GetPublic()), networkID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +65,7 @@ func newService(t *testing.T, networkID uint64, o libp2pServiceOpts) (s *libp2p.
 			t.Fatal(err)
 		}
 
-		o.PrivateKey = libp2pKey
+		o.PrivateKey = libp2pKey.IntoKey().(*ecdsa.PrivateKey)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -80,7 +81,7 @@ func newService(t *testing.T, networkID uint64, o libp2pServiceOpts) (s *libp2p.
 	}
 	opts := o.libp2pOpts
 
-	s, err = libp2p.New(ctx, crypto.NewDefaultSigner(k), networkID, overlay, addr, o.Addressbook, statestore, o.lightNodes, o.bootNodes, o.Logger, nil, opts)
+	s, err = libp2p.New(ctx, crypto.NewDefaultSigner(k.IntoKey().(*ecdsa.PrivateKey)), networkID, overlay, addr, o.Addressbook, statestore, o.lightNodes, o.bootNodes, o.Logger, nil, opts)
 	if err != nil {
 		t.Fatal(err)
 	}

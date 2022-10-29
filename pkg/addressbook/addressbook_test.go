@@ -1,6 +1,7 @@
 package addressbook_test
 
 import (
+	"crypto/ecdsa"
 	"testing"
 
 	"github.com/FavorLabs/favorX/pkg/address"
@@ -35,7 +36,7 @@ func run(t *testing.T, f bookFunc) {
 		t.Fatal(err)
 	}
 
-	bzzAddr, err := address.NewAddress(crypto.NewDefaultSigner(pk), multiaddr, addr1, 1)
+	bzzAddr, err := address.NewAddress(crypto.NewDefaultSigner(pk.IntoKey().(*ecdsa.PrivateKey)), multiaddr, addr1, 1)
 	if err != nil {
 		t.Fatal(err)
 	}

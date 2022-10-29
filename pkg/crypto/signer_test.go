@@ -2,6 +2,7 @@ package crypto_test
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"math/big"
@@ -21,7 +22,7 @@ func TestDefaultSigner(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signer := crypto.NewDefaultSigner(privKey)
+	signer := crypto.NewDefaultSigner(privKey.IntoKey().(*ecdsa.PrivateKey))
 	signature, err := signer.Sign(testBytes)
 	if err != nil {
 		t.Fatal(err)
@@ -71,7 +72,7 @@ func TestDefaultSignerEthereumAddress(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signer := crypto.NewDefaultSigner(privKey)
+	signer := crypto.NewDefaultSigner(privKey.IntoKey().(*ecdsa.PrivateKey))
 	ethAddress, err := signer.EthereumAddress()
 	if err != nil {
 		t.Fatal(err)
@@ -94,7 +95,7 @@ func TestDefaultSignerSignTx(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signer := crypto.NewDefaultSigner(privKey)
+	signer := crypto.NewDefaultSigner(privKey.IntoKey().(*ecdsa.PrivateKey))
 	beneficiary := common.HexToAddress("8d3766440f0d7b949a5e32995d09619a7f86e632")
 
 	chainID := big.NewInt(10)
@@ -163,7 +164,7 @@ func TestDefaultSignerTypedData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signer := crypto.NewDefaultSigner(privKey)
+	signer := crypto.NewDefaultSigner(privKey.IntoKey().(*ecdsa.PrivateKey))
 
 	sig, err := signer.SignTypedData(testTypedData)
 	if err != nil {
@@ -226,7 +227,7 @@ func TestDefaultSignerDeterministic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signer := crypto.NewDefaultSigner(privKey)
+	signer := crypto.NewDefaultSigner(privKey.IntoKey().(*ecdsa.PrivateKey))
 	sig, err := signer.Sign(digest)
 	if err != nil {
 		t.Fatal(err)

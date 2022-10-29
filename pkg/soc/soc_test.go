@@ -2,6 +2,7 @@ package soc_test
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -173,7 +174,7 @@ func TestSign(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	signer := crypto.NewDefaultSigner(privKey)
+	signer := crypto.NewDefaultSigner(privKey.IntoKey().(*ecdsa.PrivateKey))
 
 	payload := []byte("foo")
 	ch, err := cac.New(payload)
@@ -202,7 +203,7 @@ func TestSign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	owner, err := crypto.NewEthereumAddress(*publicKey)
+	owner, err := crypto.NewEthereumAddress((*crypto.Secp256k1PublicKey)(publicKey))
 	if err != nil {
 		t.Fatal(err)
 	}

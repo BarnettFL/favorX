@@ -1,7 +1,6 @@
 package file
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -37,7 +36,7 @@ func (s *Service) Exists(name string) (bool, error) {
 	return true, nil
 }
 
-func (s *Service) Key(name, password string) (pk *ecdsa.PrivateKey, created bool, err error) {
+func (s *Service) Key(typ crypto.KeyType, name, password string) (pk crypto.PrivateKey, created bool, err error) {
 	filename := s.keyFilename(name)
 
 	data, err := os.ReadFile(filename)
@@ -46,9 +45,18 @@ func (s *Service) Key(name, password string) (pk *ecdsa.PrivateKey, created bool
 	}
 	if len(data) == 0 {
 		var err error
-		pk, err = crypto.GenerateSecp256k1Key()
-		if err != nil {
-			return nil, false, fmt.Errorf("generate secp256k1 key: %w", err)
+
+		switch typ {
+		case crypto.KeyType_Secp256k1:
+			pk, err = crypto.GenerateSecp256k1Key()
+			if err != nil {
+				return nil, false, fmt.Errorf("generate secp256k1 key: %w", err)
+			}
+		case crypto.KeyType_Sr25519:
+			pk, err = crypto.GenerateSr25519Key()
+			if err != nil {
+				return nil, false, fmt.Errorf("generate ed25519 key: %w", err)
+			}
 		}
 
 		d, err := encryptKey(pk, password)
@@ -107,7 +115,7 @@ func (s *Service) ImportKey(name, password string, keyJson []byte) (err error) {
 	return s.write(name, d)
 }
 
-func (s *Service) ImportPrivateKey(name, password string, pk *ecdsa.PrivateKey) (err error) {
+func (s *Service) ImportPrivateKey(name, password string, pk crypto.PrivateKey) (err error) {
 	_, err = s.read(name, password)
 	if err != nil {
 		return err
@@ -134,7 +142,7 @@ func (s *Service) keyFilename(name string) string {
 	return filepath.Join(s.dir, fmt.Sprintf("%s.key", name))
 }
 
-func (s *Service) read(name, password string) (pk *ecdsa.PrivateKey, err error) {
+func (s *Service) read(name, password string) (pk crypto.PrivateKey, err error) {
 	filename := s.keyFilename(name)
 
 	data, err := os.ReadFile(filename)

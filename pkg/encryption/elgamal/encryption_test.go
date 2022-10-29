@@ -2,6 +2,7 @@ package elgamal_test
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"io"
 	"testing"
@@ -35,7 +36,7 @@ func TestElgamalCorrect(t *testing.T) {
 		t.Fatalf("ciphertext has incorrect length: expected %v,  got %v", padding, len(ciphertext))
 	}
 
-	dec, err := elgamal.NewDecrypter(key, ephpub, salt, boson.NewHasher)
+	dec, err := elgamal.NewDecrypter(key.IntoKey().(*ecdsa.PrivateKey), ephpub, salt, boson.NewHasher)
 	if err != nil {
 		t.Fatal(err)
 	}
